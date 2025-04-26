@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversion Tool</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0077b6" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right, #e0f7fa, #e8f5e9); color: #333; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+    h1 { color: #0077b6; margin-bottom: 30px; font-size: 2.5em; }
+    .converter-container { background-color: #ffffff; padding: 30px 40px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+    .input-container { display: flex; flex-direction: column; gap: 20px; }
+    .field-group { display: flex; align-items: center; gap: 10px; }
+    label { font-weight: 600; margin-bottom: 6px; display: block; }
+    small { color: #666; display: block; margin-top: 2px; font-size: 0.85em; }
+    input[type="number"] { padding: 10px 15px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 1em; width: 100%; transition: all 0.3s ease; }
+    input[type="number"]:focus { border-color: #0077b6; box-shadow: 0 0 5px rgba(0,119,182,0.3); outline: none; }
+    button { padding: 8px 14px; background-color: #0077b6; color: white; font-size: 1em; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s ease; }
+    button:hover { background-color: #005f87; }
+    .copy-btn { font-size: 0.85em; padding: 6px 10px; background-color: #90caf9; color: #003c66; }
+    .copy-btn:hover { background-color: #64b5f6; }
+    .button-group { display: flex; justify-content: flex-end; margin-top: 25px; }
+    @media (max-width: 420px) { h1 { font-size: 2em; } .converter-container { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <h1>Conversions</h1>
+  <div class="converter-container animate__animated animate__fadeInUp">
+    <div class="input-container">
+      <div>
+        <label for="gunter-input">Gunter Links:</label>
+        <div class="field-group">
+          <input type="number" step="any" id="gunter-input" placeholder="Enter Gunter Links">
+          <button class="copy-btn" onclick="copyValue('gunter-input', this)">Copy</button>
+        </div>
+        <small>1 Gunter Link ≈ 0.201168 meters</small>
+      </div>
+      <div>
+        <label for="metric-input">Metric Links:</label>
+        <div class="field-group">
+          <input type="number" step="any" id="metric-input" placeholder="Enter Metric Links">
+          <button class="copy-btn" onclick="copyValue('metric-input', this)">Copy</button>
+        </div>
+        <small>1 Metric Link = 0.2 meters</small>
+      </div>
+      <div>
+        <label for="meter-input">Meters:</label>
+        <div class="field-group">
+          <input type="number" step="any" id="meter-input" placeholder="Enter Meters">
+          <button class="copy-btn" onclick="copyValue('meter-input', this)">Copy</button>
+        </div>
+        <small>1 Meter = 5 Metric Links</small>
+      </div>
+      <div>
+        <label for="feet-input">Feet:</label>
+        <div class="field-group">
+          <input type="number" step="any" id="feet-input" placeholder="Enter Feet">
+          <button class="copy-btn" onclick="copyValue('feet-input', this)">Copy</button>
+        </div>
+        <small>1 Foot = 0.3048 meters</small>
+      </div>
+    </div>
+    <div class="button-group">
+      <button onclick="clearFields()">Clear</button>
+    </div>
+  </div>
+  <script>
+    function debounce(func, delay) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+    function calculateFromGunter() {
+      const gunterLinks = parseFloat(document.getElementById("gunter-input").value);
+      if (!isNaN(gunterLinks)) {
+        const metricLinks = 1.00584 * gunterLinks;
+        const meters = 0.2 * metricLinks;
+        const feet = meters / 0.3048;
+        updateFields(gunterLinks, metricLinks, meters, feet, 'gunter');
+      }
+    }
+    function calculateFromMetric() {
+      const metricLinks = parseFloat(document.getElementById("metric-input").value);
+      if (!isNaN(metricLinks)) {
+        const gunterLinks = metricLinks / 1.00584;
+        const meters = 0.2 * metricLinks;
+        const feet = meters / 0.3048;
+        updateFields(gunterLinks, metricLinks, meters, feet, 'metric');
+      }
+    }
+    function calculateFromMeter() {
+      const meters = parseFloat(document.getElementById("meter-input").value);
+      if (!isNaN(meters)) {
+        const metricLinks = meters * 5;
+        const gunterLinks = metricLinks / 1.00584;
+        const feet = meters / 0.3048;
+        updateFields(gunterLinks, metricLinks, meters, feet, 'meter');
+      }
+    }
+    function calculateFromFeet() {
+      const feet = parseFloat(document.getElementById("feet-input").value);
+      if (!isNaN(feet)) {
+        const meters = feet * 0.3048;
+        const metricLinks = meters * 5;
+        const gunterLinks = metricLinks / 1.00584;
+        updateFields(gunterLinks, metricLinks, meters, feet, 'feet');
+      }
+    }
+    function updateFields(gunter, metric, meter, feet, source) {
+      if (source !== 'gunter') updateField("gunter-input", gunter);
+      if (source !== 'metric') updateField("metric-input", metric);
+      if (source !== 'meter') updateField("meter-input", meter);
+      if (source !== 'feet') updateField("feet-input", feet);
+    }
+    function updateField(id, value) {
+      const el = document.getElementById(id);
+      el.value = value.toFixed(4);
+      el.classList.remove('animate__flash');
+      void el.offsetWidth;
+      el.classList.add('animate__animated', 'animate__flash');
+    }
+    function clearFields() {
+      ["gunter-input", "metric-input", "meter-input", "feet-input"].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+      });
+    }
+    function copyValue(id, btn) {
+      const input = document.getElementById(id);
+      if (input.value !== '') {
+        navigator.clipboard.writeText(input.value).then(() => {
+          btn.textContent = "Copied!";
+          setTimeout(() => (btn.textContent = "Copy"), 1200);
+        });
+      }
+    }
+    document.getElementById("gunter-input").oninput = debounce(calculateFromGunter, 300);
+    document.getElementById("metric-input").oninput = debounce(calculateFromMetric, 300);
+    document.getElementById("meter-input").oninput = debounce(calculateFromMeter, 300);
+    document.getElementById("feet-input").oninput = debounce(calculateFromFeet, 300);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').then(registration => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
